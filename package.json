@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
+    "invite": "node src/invite.js",
     "deploy": "node src/deploy-commands.js",
     "deploy:clear": "node src/deploy-commands.js --clear"
   },

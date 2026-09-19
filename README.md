@@ -40,9 +40,25 @@ Fill in `.env`:
 
 ### 3. Invite the bot
 
-On **OAuth2 → URL Generator**, tick the `bot` and `applications.commands`
-scopes, then under bot permissions tick **Send Messages**, **Embed Links** and
-**Add Reactions**. Open the generated URL and pick a server.
+```bash
+npm run invite
+```
+
+That prints an OAuth2 URL built from your `CLIENT_ID`, with the right scopes
+and permissions already set. Open it, pick a server, authorize. You need
+**Manage Server** on the server you choose.
+
+It only reads `CLIENT_ID`, so you can run it before filling in the token.
+
+<details>
+<summary>Doing it by hand instead</summary>
+
+In the developer portal under **OAuth2 → URL Generator**, tick the `bot` and
+`applications.commands` scopes — without the second one the slash commands
+never appear — then tick **View Channels**, **Send Messages**, **Embed
+Links**, **Add Reactions** and **Read Message History**.
+
+</details>
 
 ### 4. Register commands and run
 
@@ -58,6 +74,7 @@ options change — not when you edit the code inside `execute`.
 
 ```bash
 npm run dev          # restarts on file changes
+npm run invite       # print the bot's invite URL
 npm run deploy:clear # remove all registered commands
 ```
 
@@ -97,7 +114,9 @@ src/
   index.js            client setup, event wiring, graceful shutdown
   config.js           environment loading and validation
   loader.js           auto-discovery of commands and events
+  permissions.js      the permissions the bot needs, in one place
   deploy-commands.js  registers slash commands with Discord
+  invite.js           prints the OAuth2 invite URL
   commands/           one file per slash command
   events/             one file per gateway event
   data/               static data (the word list)
