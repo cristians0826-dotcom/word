@@ -1,0 +1,20 @@
+# For running on any box with Docker (a VPS, a home server, your laptop):
+#   docker compose up -d        start in the background
+#   docker compose logs -f      follow the logs
+#   docker compose down         stop
+services:
+  bot:
+    build: .
+    # Covers both "restart on crash" and "restart on reboot". Unlike "always",
+    # it stays down if you stopped it deliberately.
+    restart: unless-stopped
+    env_file: .env
+    # Run exactly one instance. Two processes sharing a token both connect to
+    # the gateway, and every command answers twice.
+    deploy:
+      replicas: 1
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

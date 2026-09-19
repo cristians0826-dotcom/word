@@ -120,7 +120,67 @@ src/
   commands/           one file per slash command
   events/             one file per gateway event
   data/               static data (the word list)
+
+Dockerfile            container image
+docker-compose.yml    run on any Docker host
+fly.toml              Fly.io deployment config
 ```
+
+## Running it 24/7
+
+The bot holds a persistent gateway connection — it is not a web server. Pick a
+**worker** / **background** service type on any host that asks; anything that
+sleeps idle web services or health-checks an HTTP port will kill it.
+
+Whatever you choose, three things matter:
+
+1. **Restart on crash.** Both setups below do this.
+2. **Restart on reboot.** Same.
+3. **Exactly one instance.** Two processes sharing a token both connect, and
+   every command answers twice. If you deploy to a host, stop the copy running
+   on your laptop.
+
+Register the slash commands once from your own machine with `npm run deploy` —
+it only talks to Discord's REST API, so it does not need to run on the server.
+
+### Fly.io
+
+```bash
+fly launch --no-deploy          # claims an app name, keeps this fly.toml
+fly secrets set DISCORD_TOKEN=... CLIENT_ID=...
+fly deploy
+fly scale count 1               # one machine, see point 3 above
+```
+
+Then `fly logs` to watch it, and `fly deploy` again after any change. Fly
+restarts a crashed machine on its own. Billing is usage-based; the
+`shared-cpu-1x` / 256MB machine in `fly.toml` is about as small as it gets.
+
+`fly.toml` deliberately declares no `[http_service]`. Adding one would make Fly
+health-check a port nothing listens on and autostop the machine.
+
+### Any host with Docker (VPS, home server, Raspberry Pi)
+
+```bash
+cp .env.example .env            # fill in the token and application ID
+docker compose up -d
+```
+
+`restart: unless-stopped` covers both crashes and reboots. Logs are capped at
+3 x 10MB so a long-running bot cannot fill the disk.
+
+```bash
+docker compose logs -f          # follow output
+docker compose up -d --build    # apply code changes
+docker compose down             # stop
+```
+
+### Keeping the token safe
+
+`.env` is gitignored and excluded from the image by `.dockerignore`, so the
+token is never baked into a layer or pushed to GitHub. On Fly use
+`fly secrets set` rather than committing anything. If a token does leak, reset
+it in the developer portal — a leaked token lets anyone run the bot as you.
 
 ## Notes
 
